@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🔥 Fogo Ecosystem Card Game</title>
+  <style>
+    body {
+      font-family: "Trebuchet MS", sans-serif;
+      text-align: center;
+      background: radial-gradient(circle at center, #1a1a1a, #000000);
+      color: #fff;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      margin: 20px;
+      font-size: 2.5em;
+      color: #ff4500;
+      text-shadow: 0 0 15px #ff6347, 0 0 30px #ff4500;
+      animation: flicker 2s infinite alternate;
+      position: relative;
+      z-index: 2;
+    }
+
+    @keyframes flicker {
+      from { text-shadow: 0 0 10px #ff4500, 0 0 20px #ff6347; }
+      to   { text-shadow: 0 0 20px #ff6347, 0 0 40px #ff0000; }
+    }
+
+    /* Game Board */
+    #game-board {
+      display: grid;
+      grid-template-columns: repeat(4, 140px); /* wider */
+      grid-gap: 14px;
+      justify-content: center;
+      margin: 30px auto;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Card Styling */
+    .card {
+      width: 140px;   /* wider */
+      height: 100px;  /* shorter */
+      cursor: pointer;
+      perspective: 1000px;
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+    }
+
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    /* Card Faces */
+    .card-front,
+    .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      backface-visibility: hidden;
+    }
+
+    /* Fire Back Design */
+    .card-back {
+      background: linear-gradient(145deg, #ff4500, #ff6347, #ff0000);
+      box-shadow: 0 0 20px rgba(255, 69, 0, 0.8), 0 0 40px rgba(255, 99, 71, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 0 0 10px #000, 0 0 20px #ff0000;
+      animation: flameGlow 1.5s infinite alternate;
+    }
+
+    @keyframes flameGlow {
+      from { box-shadow: 0 0 15px #ff4500, 0 0 30px #ff6347; }
+      to   { box-shadow: 0 0 25px #ff6347, 0 0 50px #ff0000; }
+    }
+
+    /* Front Image */
+    .card-front {
+      transform: rotateY(180deg);
+      overflow: hidden;
+      border: 2px solid #ff4500;
+      box-shadow: 0 0 10px rgba(255, 69, 0, 0.8);
+    }
+
+    .card-front img {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+
+    /* Fire burst on match */
+    .matched .card-inner {
+      animation: fireBurst 1s ease;
+      border-radius: 12px;
+    }
+
+    @keyframes fireBurst {
+      0%   { box-shadow: 0 0 10px #ffff00, 0 0 20px #ffae42; }
+      25%  { box-shadow: 0 0 20px #ffff00, 0 0 40px #ff8c00; }
+      50%  { box-shadow: 0 0 40px #ffff00, 0 0 80px #ffbf00; }
+      75%  { box-shadow: 0 0 20px #f1cd05, 0 0 60px #ff8c00; }
+      100% { box-shadow: 0 0 15px #ffff00, 0 0 30px #ffae42; }
+    }
+
+    /* Floating fire particles */
+    .particle {
+      position: absolute;
+      bottom: -20px;
+      width: 6px;
+      height: 6px;
+      background: radial-gradient(circle, #ff4500, transparent);
+      border-radius: 50%;
+      animation: rise 5s linear infinite;
+      opacity: 0.8;
+    }
+
+    @keyframes rise {
+      0%   { transform: translateY(0) scale(1); opacity: 0.8; }
+      50%  { transform: translateY(-200px) scale(1.5); opacity: 0.4; }
+      100% { transform: translateY(-400px) scale(0.8); opacity: 0; }
+    }
+
+    /* Footer Credits */
+    #credits {
+      margin-top: 40px;
+      margin-bottom: 30px;
+      font-size: 1.2em;
+      color: #ffae42;
+      text-shadow: 0 0 10px #ff4500, 0 0 20px #ff6347;
+      animation: emberGlow 2s infinite alternate;
+      position: relative;
+      z-index: 2;
+    }
+
+    @keyframes emberGlow {
+      from { text-shadow: 0 0 8px #ff4500, 0 0 16px #ff6347; }
+      to   { text-shadow: 0 0 20px #ff6347, 0 0 40px #ff0000; }
+    }
+
+    /* Popup Styles */
+    .popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .popup-content {
+      background: #1a1a1a;
+      padding: 20px 30px;
+      border-radius: 12px;
+      text-align: center;
+      color: #ffae42;
+      box-shadow: 0 0 20px #ff4500, 0 0 40px #ff6347;
+      animation: emberGlow 2s infinite alternate;
+    }
+
+    .popup-content h2 {
+      margin-bottom: 15px;
+      color: #ff4500;
+    }
+
+    .popup-content input {
+      padding: 8px;
+      border: none;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      width: 200px;
+      text-align: center;
+    }
+
+    .popup-content button {
+      background: #ff4500;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 1em;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 10px #ff6347;
+      transition: transform 0.2s;
+    }
+
+    .popup-content button:hover {
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>🔥 Fogo Ecosystem Card Game</h1>
+  <div id="game-board"></div>
+
+  <!-- Name Input Popup -->
+  <div id="name-popup" class="popup" style="display:flex;">
+    <div class="popup-content">
+      <h2>Enter Your Name</h2>
+      <input type="text" id="player-name" placeholder="Your Name" />
+      <button id="start-game">Start</button>
+    </div>
+  </div>
+
+  <!-- Win Popup -->
+  <div id="win-popup" class="popup">
+    <div class="popup-content">
+      <h2 id="win-text">🔥 You Conquered the Flames! 🔥</h2>
+      <button onclick="restartGame()">Play Again</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer id="credits">✨ Designed & Developed by Naina ✨</footer>
+
+  <script>
+    const board = document.getElementById("game-board");
+
+    const images = [
+      { name: "ambient", url: "images/ambient.jpg" },
+      { name: "valiant", url: "images/valiant.jpg" },
+      { name: "flux", url: "images/flux.jpg" },
+      { name: "rug", url: "images/rug.jpg" },
+      { name: "fogo", url: "images/fogo.jpg" },
+      { name: "pyronfi", url: "images/pyronfi.jpg" },
+      { name: "wormhole", url: "images/wormhole.jpg" },
+      { name: "furbo", url: "images/furbo.jpg" },
+      { name: "fogolend", url: "images/fogolend.png" },
+      { name: "metaplex", url: "images/metaplex.jpg" }
+    ];
+
+    let gameCards = [...images, ...images];
+    gameCards.sort(() => 0.5 - Math.random());
+
+    let firstCard = null;
+    let lock = false;
+    let matchedPairs = 0;
+    let playerName = "";
+
+    gameCards.forEach((imgObj) => {
+      const card = document.createElement("div");
+      card.classList.add("card");
+      card.dataset.name = imgObj.name;
+
+      const inner = document.createElement("div");
+      inner.classList.add("card-inner");
+
+      const back = document.createElement("div");
+      back.classList.add("card-back");
+      back.innerText = "🔥";
+
+      const front = document.createElement("div");
+      front.classList.add("card-front");
+      const img = document.createElement("img");
+      img.src = imgObj.url;
+      front.appendChild(img);
+
+      inner.appendChild(back);
+      inner.appendChild(front);
+      card.appendChild(inner);
+
+      card.addEventListener("click", () => {
+        if (lock || card.classList.contains("flipped")) return;
+
+        card.classList.add("flipped");
+
+        if (!firstCard) {
+          firstCard = card;
+        } else {
+          if (firstCard.dataset.name === card.dataset.name) {
+            matchedPairs++;
+            firstCard.classList.add("matched");
+            card.classList.add("matched");
+            firstCard = null;
+
+            if (matchedPairs === images.length) {
+              setTimeout(() => checkWinCondition(), 500);
+            }
+          } else {
+            lock = true;
+            setTimeout(() => {
+              firstCard.classList.remove("flipped");
+              card.classList.remove("flipped");
+              firstCard = null;
+              lock = false;
+            }, 1000);
+          }
+        }
+      });
+
+      board.appendChild(card);
+    });
+
+    // Fire particles
+    function createParticle() {
+      const particle = document.createElement("div");
+      particle.classList.add("particle");
+      particle.style.left = Math.random() * window.innerWidth + "px";
+      particle.style.animationDuration = 3 + Math.random() * 4 + "s";
+      document.body.appendChild(particle);
+      setTimeout(() => particle.remove(), 7000);
+    }
+    setInterval(createParticle, 200);
+
+    // Name popup logic
+    document.getElementById("start-game").addEventListener("click", () => {
+      const input = document.getElementById("player-name").value.trim();
+      if (input === "") {
+        alert("Please enter your name!");
+        return;
+      }
+      playerName = input;
+      document.getElementById("name-popup").style.display = "none";
+    });
+
+    // Show win popup
+    function showWinPopup() {
+      document.getElementById("win-text").innerText =
+        `🔥 Congratulations ${playerName}, You Conquered the Flames! 🔥`;
+      document.getElementById("win-popup").style.display = "flex";
+    }
+
+    function restartGame() {
+      document.getElementById("win-popup").style.display = "none";
+      location.reload();
+    }
+
+    function checkWinCondition() {
+      const matchedCards = document.querySelectorAll(".matched").length;
+      const totalCards = document.querySelectorAll(".card").length;
+      if (matchedCards === totalCards) {
+        setTimeout(() => showWinPopup(), 800);
+      }
+    }
+  </script>
+</body>
+</html>
